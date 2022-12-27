@@ -1,2 +1,3 @@
 # eruda-android
-Simple webview with eruda loaded automatically
+
+Simple webview with eruda loaded automatically.

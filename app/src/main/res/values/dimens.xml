@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="top_bar_height">40dp</dimen>
+    <dimen name="top_bar_bg_gap">5dp</dimen>
+</resources>
