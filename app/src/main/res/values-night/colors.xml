@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#202124</color>
+    <color name="input_background">#3C4043</color>
+    <color name="input_color">#fff</color>
+</resources>

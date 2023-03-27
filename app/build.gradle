@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "io.liriliri.eruda"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0.0"
         archivesBaseName = "eruda-v$versionName"
@@ -36,5 +36,6 @@ android {
 dependencies {
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.webkit:webkit:1.6.1'
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 }

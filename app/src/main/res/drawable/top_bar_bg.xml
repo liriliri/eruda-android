@@ -3,18 +3,16 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape>
-            <solid android:color="#ffffff" />
+            <solid android:color="@color/background" />
         </shape>
     </item>
-
     <item
         android:top="@dimen/top_bar_bg_gap"
         android:right="@dimen/top_bar_bg_gap"
         android:bottom="@dimen/top_bar_bg_gap"
         android:left="@dimen/top_bar_bg_gap">
         <shape>
-            <solid android:color="#f4f4f4" />
-
+            <solid android:color="@color/input_background" />
             <corners android:radius="3dp"/>
         </shape>
     </item>

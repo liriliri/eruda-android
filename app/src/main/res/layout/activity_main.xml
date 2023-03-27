@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#fafafa"
+    android:background="@color/background"
     android:hardwareAccelerated="true"
     android:orientation="vertical"
     tools:context=".MainActivity">
@@ -36,7 +36,7 @@
             android:imeOptions="actionGo"
             android:inputType="textUri"
             android:maxLines="1"
-            android:textColor="#606060"
+            android:textColor="@color/input_color"
             android:textColorHint="#9f9f9f"
             android:textSize="15sp" />
 
