@@ -210,8 +210,8 @@ class MainActivity : AppCompatActivity() {
 
         // https://stackoverflow.com/questions/57449900/letting-webview-on-android-work-with-prefers-color-scheme-dark
         if(WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY) && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON);
-            WebSettingsCompat.setForceDarkStrategy(settings, WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY);
+            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON)
+            WebSettingsCompat.setForceDarkStrategy(settings, WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
         }
 
         webView.loadUrl("https://github.com/liriliri/eruda")
