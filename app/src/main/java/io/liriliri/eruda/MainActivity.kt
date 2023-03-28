@@ -3,10 +3,12 @@ package io.liriliri.eruda
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
@@ -14,8 +16,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.webkit.WebViewFeature
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -32,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnGoForward: ImageView
     private lateinit var favicon: ImageView
     private lateinit var manager: InputMethodManager
-    private val TAG = "Eruda"
+    private val TAG = "Eruda.MainActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -102,7 +104,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @Suppress("DEPRECATION")
+    @SuppressLint("SetJavaScriptEnabled", "RequiresFeature")
     private fun initWebView() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
@@ -133,18 +136,45 @@ class MainActivity : AppCompatActivity() {
                     if (!isHttpUrl(url)) {
                         return null
                     }
+                    Log.i(TAG, "Loading url: $url")
 
-                    val client = OkHttpClient.Builder().followRedirects(true).build()
+                    var headers = request.requestHeaders.toHeaders()
+                    val contentType = headers["content-type"]
+                    if (contentType == "application/x-www-form-urlencoded") {
+                        return null
+                    }
+                    val cookie = CookieManager.getInstance().getCookie(url)
+                    if (cookie != null) {
+                        headers = (headers.toMap() + Pair("cookie", cookie)).toHeaders()
+                    }
+                    Log.i(TAG, "Intercept url: $url")
+                    Log.i(TAG, "Request headers: ${headers.toMap()}")
+
+                    val client = OkHttpClient.Builder().followRedirects(false).build()
                     val req = Request.Builder()
-                        .url(request.url.toString())
-                        .headers(request.requestHeaders.toHeaders())
+                        .url(url)
+                        .headers(headers)
                         .build()
 
                     return try {
                         val response = client.newCall(req).execute()
-                        val body = response.body?.string()
-                        WebResourceResponse("text/html", response.header("content-encoding", "utf-8"), body?.byteInputStream())
+                        if (response.headers["content-security-policy"] == null) {
+                            return null
+                        }
+                        val resHeaders =
+                            response.headers.toMap().filter { it.key != "content-security-policy" }
+                        Log.i(TAG, "Response headers: $resHeaders")
+
+                        return WebResourceResponse(
+                            "text/html",
+                            response.header("content-encoding", "utf-8"),
+                            response.code,
+                            "ok",
+                            resHeaders,
+                            response.body?.byteStream()
+                        )
                     } catch (e: Exception) {
+                        Log.e(TAG, e.message.toString())
                         null
                     }
                 }
@@ -208,14 +238,42 @@ class MainActivity : AppCompatActivity() {
         settings.domStorageEnabled = true
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
-        // https://stackoverflow.com/questions/57449900/letting-webview-on-android-work-with-prefers-color-scheme-dark
-        if(WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY) && WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON)
-            WebSettingsCompat.setForceDarkStrategy(settings, WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
+        if (resources.getString(R.string.mode) == "night") {
+            // https://stackoverflow.com/questions/57449900/letting-webview-on-android-work-with-prefers-color-scheme-dark
+            val supportForceDarkStrategy =
+                WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)
+            val supportForceDark = WebViewFeature.isFeatureSupported(
+                WebViewFeature.FORCE_DARK
+            )
+            if (supportForceDarkStrategy && supportForceDark) {
+                WebSettingsCompat.setForceDark(settings, WebSettingsCompat.FORCE_DARK_ON)
+                WebSettingsCompat.setForceDarkStrategy(
+                    settings,
+                    WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY
+                )
+            }
         }
 
         webView.loadUrl("https://github.com/liriliri/eruda")
     }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            val v = currentFocus
+            if (v is EditText) {
+                val outRect = Rect()
+                v.getGlobalVisibleRect(outRect)
+                if (!outRect.contains(event.rawX.toInt(), event.rawY.toInt())) {
+                    v.clearFocus()
+                    if (manager.isActive) {
+                        manager.hideSoftInputFromWindow(textUrl.applicationWindowToken, 0)
+                    }
+                }
+            }
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
     private fun setTextUrl(text: String?) {
         if (!textUrl.hasFocus() && text != null) {
             textUrl.setText(text)

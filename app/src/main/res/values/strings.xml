@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Eruda</string>
     <string name="input_url">Enter Url</string>
+    <string name="mode">day</string>
 </resources>
