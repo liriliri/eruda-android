@@ -16,6 +16,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import okhttp3.Headers.Companion.toHeaders
@@ -36,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var manager: InputMethodManager
     private val TAG = "Eruda.MainActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
