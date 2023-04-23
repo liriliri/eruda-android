@@ -1,6 +1,7 @@
 package io.liriliri.eruda
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Rect
@@ -15,6 +16,7 @@ import android.webkit.*
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.webkit.WebSettingsCompat
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var favicon: ImageView
     private lateinit var manager: InputMethodManager
     private val TAG = "Eruda.MainActivity"
+    var mFilePathCallback: ValueCallback<Array<Uri>>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
@@ -223,6 +226,20 @@ class MainActivity : AppCompatActivity() {
                 webView.evaluateJavascript(script) {}
             }
         }
+
+        val selectFileLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (mFilePathCallback != null) {
+                    mFilePathCallback!!.onReceiveValue(
+                        WebChromeClient.FileChooserParams.parseResult(
+                            result.resultCode,
+                            result.data
+                        )
+                    )
+                    mFilePathCallback = null
+                }
+            }
+
         webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
@@ -234,6 +251,26 @@ class MainActivity : AppCompatActivity() {
                 super.onReceivedIcon(view, icon)
 
                 favicon.setImageBitmap(icon)
+            }
+
+            override fun onShowFileChooser(
+                webView: WebView?,
+                filePathCallback: ValueCallback<Array<Uri>>,
+                fileChooserParams: FileChooserParams
+            ): Boolean {
+                if (mFilePathCallback != null) {
+                    mFilePathCallback!!.onReceiveValue(null)
+                    mFilePathCallback = null
+                }
+                mFilePathCallback = filePathCallback
+                val intent = fileChooserParams.createIntent()
+                try {
+                    selectFileLauncher.launch(intent)
+                } catch (e: ActivityNotFoundException) {
+                    mFilePathCallback = null
+                    return false
+                }
+                return true
             }
         }
         val settings = webView.settings
