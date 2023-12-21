@@ -68,12 +68,16 @@ class MainActivity : AppCompatActivity() {
                 }
                 var input = textUrl.text.toString()
                 if (!isHttpUrl(input)) {
-                    try {
-                        input = URLEncoder.encode(input, "utf-8")
-                    } catch (e: UnsupportedEncodingException) {
-                        Log.e(TAG, e.message.toString())
+                    if (mayBeUrl(input)) {
+                        input = "https://${input}"
+                    } else {
+                        try {
+                            input = URLEncoder.encode(input, "utf-8")
+                        } catch (e: UnsupportedEncodingException) {
+                            Log.e(TAG, e.message.toString())
+                        }
+                        input = "https://www.google.com/search?q=${input}"
                     }
-                    input = "https://www.google.com/search?q=${input}"
                 }
                 webView.loadUrl(input)
                 textUrl.clearFocus()
@@ -323,4 +327,10 @@ class MainActivity : AppCompatActivity() {
 
 fun isHttpUrl(url: String): Boolean {
     return url.startsWith("http:") || url.startsWith("https:")
+}
+
+fun mayBeUrl(text: String): Boolean {
+    val domains = arrayOf(".com", ".io", ".me", ".org", ".net", ".tv", ".cn")
+
+    return domains.any { text.contains(it) }
 }
