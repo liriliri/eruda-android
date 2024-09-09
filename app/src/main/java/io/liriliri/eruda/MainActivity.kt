@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnGoForward: ImageView
     private lateinit var favicon: ImageView
     private lateinit var manager: InputMethodManager
+    private var initialURL = "https://github.com/liriliri/eruda"
     private val TAG = "Eruda.MainActivity"
     var mFilePathCallback: ValueCallback<Array<Uri>>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,8 +49,20 @@ class MainActivity : AppCompatActivity() {
 
         manager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
+        onNewIntent(getIntent())
+
         initView()
         initWebView()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (Intent.ACTION_SEND.equals(intent.getAction())
+            || Intent.ACTION_SENDTO.equals(intent.getAction())) {
+            if (intent != null) {
+                intent.getStringExtra(Intent.EXTRA_TEXT)!!.also { this.initialURL = it }
+            }
+        }
     }
 
     private fun initView() {
@@ -298,7 +311,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        webView.loadUrl("https://github.com/liriliri/eruda")
+        webView.loadUrl(initialURL)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
