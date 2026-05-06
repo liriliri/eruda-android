@@ -2,4 +2,6 @@
     <string name="app_name">Eruda</string>
     <string name="input_url">Enter Url</string>
     <string name="mode">day</string>
+    <string name="storage_permission_denied">Storage permission is required to open local files</string>
+    <string name="all_files_access_required">Enable "All Files Access" for this app in Settings to open local files</string>
 </resources>

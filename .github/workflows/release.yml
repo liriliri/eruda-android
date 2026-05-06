@@ -1,0 +1,54 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - master
+      - 'copilot/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(./gradlew -q printVersionName 2>/dev/null || grep -oP '(?<=versionName ")[^"]+' app/build.gradle | head -1)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Extract only the current version section from CHANGELOG.md
+          awk "/^## $VERSION/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md > /tmp/release_notes.md
+          # Fall back to full changelog if no section found
+          if [ ! -s /tmp/release_notes.md ]; then cp CHANGELOG.md /tmp/release_notes.md; fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.version.outputs.version) }}
+          name: v${{ steps.version.outputs.version }}
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: false
+          make_latest: true
+          files: app/build/outputs/apk/release/*-release.apk

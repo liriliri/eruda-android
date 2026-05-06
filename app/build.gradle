@@ -10,8 +10,8 @@ android {
         applicationId "io.liriliri.eruda"
         minSdk 21
         targetSdk 33
-        versionCode 2
-        versionName "1.2.0"
+        versionCode 3
+        versionName "1.2.1"
         archivesBaseName = "eruda-v$versionName"
     }
 
@@ -19,6 +19,11 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // On CI the debug keystore is used so the APK is immediately installable.
+            // Locally, leave unsigned; override with a proper keystore for production.
+            if (System.getenv("CI")) {
+                signingConfig signingConfigs.debug
+            }
         }
     }
     compileOptions {
